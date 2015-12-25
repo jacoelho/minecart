@@ -11,7 +11,7 @@ Generate deb files from ruby web apps while keeping capistrano compatible direct
 ./minecart.py <manifest>
 ```
 
-### example manisfest
+#### example manisfest
 
 ```json
 {
