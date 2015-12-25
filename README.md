@@ -1,17 +1,17 @@
-## minecart
+# minecart
 
 Opinionated [fpm](https://github.com/jordansissel/fpm) wrapper.
 
 Generate deb files from ruby web apps while keeping capistrano compatible directory hierarchy.
 
 
-### usage
+## usage
 
 ```bash
 ./minecart.py <manifest>
 ```
 
-#### example manisfest
+### example manisfest
 
 ```json
 {
@@ -41,11 +41,11 @@ the current ruby and bundler will be added to the package install dependencies.
 
 shell env is available during build.
 
-### dependencies
+## dependencies
 
 python3 installed
 
-### faq
+## faq
 
 #### why json
 it is on python standard library
