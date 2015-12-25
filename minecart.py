@@ -153,7 +153,7 @@ if ! id ${{service_user}} > /dev/null 2>&1 ; then
     ${{service_user}}
 fi
 
-rm {path}/{name}/current
+test -L {path}/{name}/current && rm {path}/{name}/current
 ln -sf {path}/{name}/releases/{version}/ {path}/{name}/current
 chown -R ${{service_user}}:${{service_user}} ${{service_home}}
 
