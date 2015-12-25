@@ -244,6 +244,7 @@ if __name__ == "__main__":
 
       # unique entries only
       deps = list(set(cfg['install_deps'] + [ ruby_version(), 'bundler']))
+      log("Package dependencies: {0}".format(deps))
 
       build_package(
         name=cfg['name'],
