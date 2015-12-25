@@ -44,3 +44,8 @@ shell env is available during build.
 ### dependencies
 
 python3 installed
+
+### faq
+
+#### why json
+it is on python standard library
