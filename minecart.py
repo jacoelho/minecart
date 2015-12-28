@@ -61,18 +61,16 @@ def install_packages(packages, logfile=subprocess.PIPE):
         print_exit('installing dependencies')
 
 
-def install_fpm(logfile=subprocess.PIPE):
-    if test_command('fpm'):
-        return
-
-    log("installing fpm")
+def install_gem(gemname, logfile=subprocess.PIPE):
+    log("installing {0}".format(gemname))
     try:
-        subprocess.check_call('gem install fpm --no-ri --no-rdoc --quiet',
-                              shell=True,
-                              stdout=logfile,
-                              stderr=logfile)
+        subprocess.check_call(
+            "gem install {0} --no-ri --no-rdoc --quiet".format(gemname),
+            shell=True,
+            stdout=logfile,
+            stderr=logfile)
     except subprocess.CalledProcessError:
-        print_exit('installing fpm')
+        print_exit("installing {0}".format(gemname))
 
 
 def ruby_dev():
@@ -184,6 +182,9 @@ configure)
             {user}
     fi
 
+    # not sure this is the best solution
+    command -v bundle >/dev/null 2>&1 || gem install bundler --no-ri --no-rdoc --quiet >/dev/null 2>&1
+
     chown -R {user}:{user} {path}
 
     su - {user} <<EOF
@@ -272,12 +273,12 @@ if __name__ == "__main__":
         log("writing log to {0}".format(logf))
 
         install_packages(cfg['build_deps'] + [ruby_dev(),
-                                              'bundler',
                                               'build-essential',
                                               'git-core'],
                          logfile=logfile)
 
-        install_fpm(logfile=logfile)
+        install_gem(gemname='bundler', logfile=logfile)
+        install_gem(gemname='fpm', logfile=logfile)
 
         with tempfile.TemporaryDirectory() as tmpdir:
             fpm_dir = os.path.join(tmpdir, 'fpm')
@@ -303,7 +304,7 @@ if __name__ == "__main__":
             )
 
             # unique entries only
-            deps = list(set(cfg['install_deps'] + [ruby_version(), 'bundler']))
+            deps = list(set(cfg['install_deps'] + [ruby_version()]))
             log("Package dependencies: {0}".format(deps))
 
             build_package(
