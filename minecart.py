@@ -141,7 +141,7 @@ def validate_file(data):
 def capistrano_links(workdir=None, target=None, configs=None):
     shared = os.path.join(target, 'shared')
 
-    os.makedirs(os.path.join(shared, 'tmp'), mode=0o755, exist_ok=True)
+    os.makedirs(os.path.join(workdir, 'tmp'), mode=0o755, exist_ok=True)
     os.symlink(os.path.join(shared, 'log', ''), os.path.join(workdir, 'log'))
     os.symlink(os.path.join(shared, 'pids', ''),
                os.path.join(workdir, 'tmp', 'pids'))
@@ -153,6 +153,13 @@ def capistrano_links(workdir=None, target=None, configs=None):
 
     for config in configs:
         try:
+            os.makedirs(
+                os.path.dirname(
+                    os.path.join(
+                        workdir,
+                        config)),
+                mode=0o755,
+                exist_ok=True)
             os.remove(os.path.join(workdir, config))
         except OSError:
             pass
