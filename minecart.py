@@ -5,7 +5,7 @@ import sys
 import time
 import json
 import stat
-from shutil import rmtree
+import shutil
 import tempfile
 import subprocess
 
@@ -147,7 +147,12 @@ def capistrano_links(workdir=None, target=None, configs=None):
                os.path.join(workdir, 'tmp', 'pids'))
 
     if os.path.exists(os.path.join(workdir, 'public', 'system')):
-        rmtree(os.path.join(workdir, 'public', 'system'), ignore_errors=True)
+        shutil.rmtree(
+            os.path.join(
+                workdir,
+                'public',
+                'system'),
+            ignore_errors=True)
         os.symlink(os.path.join(shared, 'system', ''),
                    os.path.join(workdir, 'public', 'system'))
 
@@ -172,25 +177,33 @@ set -e
 
 case "$1" in
 configure)
-service_user="{user}"
-service_home="{path}"
+    if ! id {user} > /dev/null 2>&1 ; then
+        adduser --system --group --no-create-home \
+            --home {path} --shell /bin/bash \
+            --disabled-password \
+            {user}
+    fi
 
-if ! id ${{service_user}} > /dev/null 2>&1 ; then
-  adduser --system --group --no-create-home \
-    --home ${{service_home}} --shell /bin/bash \
-    --disabled-password \
-    ${{service_user}}
-fi
+    chown -R {user}:{user} {path}
 
-test -L {path}/{name}/current && rm {path}/{name}/current
-ln -sf {path}/{name}/releases/{version}/ {path}/{name}/current
-chown -R ${{service_user}}:${{service_user}} ${{service_home}}
+    su - {user} <<EOF
+    cd {path}/{name}/releases/{version}/
 
-# passenger restart
-su -c "touch /{path}/{name}/current/tmp/restart.txt" -s /bin/sh {user}
-;;
+    # assets precompile
+    # maybe run rake -T 1st?
+    if grep -i -q "rails" Gemfile; then
+        bundle exec rake assets:precompile RAILS_GROUPS=assets
+    fi
+
+    rm -f {path}/{name}/current
+    ln -sf {path}/{name}/releases/{version}/ {path}/{name}/current
+
+    # passenger restart
+    touch /{path}/{name}/current/tmp/restart.txt
+EOF
+    ;;
 abort-upgrade|abort-remove|abort-deconfigure)
-;;
+    ;;
 esac
 """.format(user=user, path=path, version=version, name=name)
     with open(os.path.join(workdir, 'postinst.sh'), 'w+') as stream:
@@ -305,3 +318,5 @@ if __name__ == "__main__":
                 dependencies=deps,
                 logfile=logfile
             )
+
+            log('Done')
